@@ -39,10 +39,18 @@ DAMAGE.
 
 #define DATA_INPUT_SEMAPHORE "/data_input_semaphore"
 
+typedef union {
+    uint32_t timestamp32;
+    int64_t timestamp64;
+} TimestampOpt;
+
 struct PositionValue
 {
     uint8_t address;
-    uint32_t timestamp;
+
+    TimestampOpt timestamp;
+    bool realTime;
+
     int32_t x, y, z;// coordinates in millimeters
     uint8_t flags;
     
@@ -68,7 +76,8 @@ struct RawIMUValue
     int16_t compass_y;
     int16_t compass_z;
     
-    uint32_t timestamp;
+    TimestampOpt timestamp;
+    bool realTime;
     
     bool updated;
 };
@@ -92,7 +101,8 @@ struct FusionIMUValue
     int16_t ay;
     int16_t az;// acceleration, mm/s^2
     
-    uint32_t timestamp;
+    TimestampOpt timestamp;
+    bool realTime;
     
     bool updated;
 };
@@ -106,6 +116,11 @@ struct RawDistances
 {
     uint8_t address_hedge;
     struct RawDistanceItem distances[4];
+
+    TimestampOpt timestamp;
+    bool realTime;
+
+    uint16_t timeShift;
     
     bool updated;
 };
@@ -227,19 +242,24 @@ struct MarvelmindHedge
 #define IMU_FUSION_DATAGRAM_ID 0x0005
 #define TELEMETRY_DATAGRAM_ID 0x0006
 #define QUALITY_DATAGRAM_ID 0x0007
+#define NT_POSITION_DATAGRAM_HIGHRES_ID 0x0081
+#define NT_IMU_RAW_DATAGRAM_ID 0x0083
+#define NT_BEACON_RAW_DISTANCE_DATAGRAM_ID 0x0084
+#define NT_IMU_FUSION_DATAGRAM_ID 0x0085
 #define WAYPOINT_DATAGRAM_ID 0x0201
 
 struct MarvelmindHedge * createMarvelmindHedge ();
 void destroyMarvelmindHedge (struct MarvelmindHedge * hedge);
 void startMarvelmindHedge (struct MarvelmindHedge * hedge);
 
-void printPositionFromMarvelmindHedge (struct MarvelmindHedge * hedge,
-                                       bool onlyNew);
+//void printPositionFromMarvelmindHedge (struct MarvelmindHedge * hedge,
+//                                       bool onlyNew);
 bool getPositionFromMarvelmindHedge (struct MarvelmindHedge * hedge,
                                      struct PositionValue * position);
                                      
-void printStationaryBeaconsPositionsFromMarvelmindHedge (struct MarvelmindHedge * hedge,
-                                                         bool onlyNew);
+//void printStationaryBeaconsPositionsFromMarvelmindHedge (struct MarvelmindHedge * hedge,
+//                                                         bool onlyNew);
+
 bool getStationaryBeaconsPositionsFromMarvelmindHedge (struct MarvelmindHedge * hedge,
                                               struct StationaryBeaconsPositions * positions);
 void clearStationaryBeaconUpdatedFlag(struct MarvelmindHedge * hedge, uint8_t address);

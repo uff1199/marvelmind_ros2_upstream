@@ -224,17 +224,24 @@ bool marvelmind_ros2::hedgeReceiveCheck(void)
         this->hedge_pos_msg.flags= position.flags;
         this->hedge_pos_noaddress_msg.flags= position.flags;
         this->hedge_pos_ang_msg.flags= position.flags;
+        int64_t t;
+        if (position.realTime) {
+            t = position.timestamp.timestamp64;
+        }
+        else {
+            t = position.timestamp.timestamp32;
+        }
         if (this->hedge_pos_msg.flags&(1<<1))// flag of timestamp format 
-          {
-			this->hedge_pos_msg.timestamp_ms= position.timestamp;// msec
-			this->hedge_pos_noaddress_msg.timestamp_ms= position.timestamp;
+        {
+			this->hedge_pos_msg.timestamp_ms= t;// msec
+			this->hedge_pos_noaddress_msg.timestamp_ms= t;
 		  }	
 	     else 
 	      {
-            this->hedge_pos_msg.timestamp_ms= position.timestamp*15.625;// alpha-cycles ==> msec
-            this->hedge_pos_noaddress_msg.timestamp_ms= position.timestamp*15.625;
+            this->hedge_pos_msg.timestamp_ms= position.timestamp.timestamp32*15.625;// alpha-cycles ==> msec
+            this->hedge_pos_noaddress_msg.timestamp_ms= position.timestamp.timestamp32*15.625;
         } 
-        this->hedge_pos_ang_msg.timestamp_ms= position.timestamp;
+        this->hedge_pos_ang_msg.timestamp_ms= t;
           
         this->hedge_pos_msg.x_m= position.x/1000.0; 
         this->hedge_pos_msg.y_m= position.y/1000.0; 
@@ -312,7 +319,14 @@ bool marvelmind_ros2::hedgeIMURawReceiveCheck(void)
   this->hedge_imu_raw_msg.compass_y= this->hedge->rawIMU.compass_y;
   this->hedge_imu_raw_msg.compass_z= this->hedge->rawIMU.compass_z;
   
-  this->hedge_imu_raw_msg.timestamp_ms= this->hedge->rawIMU.timestamp;
+  int64_t t;
+  if (this->hedge->rawIMU.realTime) {
+      t = this->hedge->rawIMU.timestamp.timestamp64;
+  }
+  else {
+      t = this->hedge->rawIMU.timestamp.timestamp32;
+  }
+  this->hedge_imu_raw_msg.timestamp_ms= t;
   
   this->hedge->rawIMU.updated= false;
   
@@ -341,7 +355,14 @@ bool marvelmind_ros2::hedgeIMUFusionReceiveCheck(void)
   this->hedge_imu_fusion_msg.ay= this->hedge->fusionIMU.ay/1000.0;
   this->hedge_imu_fusion_msg.az= this->hedge->fusionIMU.az/1000.0;
   
-  this->hedge_imu_fusion_msg.timestamp_ms= this->hedge->fusionIMU.timestamp;
+  int64_t t;
+  if (this->hedge->fusionIMU.realTime) {
+      t = this->hedge->fusionIMU.timestamp.timestamp64;
+  }
+  else {
+      t = this->hedge->fusionIMU.timestamp.timestamp32;
+  }
+  this->hedge_imu_fusion_msg.timestamp_ms= t;
   
   this->hedge->fusionIMU.updated= false;
   
