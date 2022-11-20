@@ -4,8 +4,8 @@ Changelog for package marvelmind_ros2
 1.0.1 (2022-07-10)
 Prepare for release
 
-Forthcoming
------------
+1.0.3 (2022-11-20)
+------------------
 * Global timestamps support
 * Contributors: smoker77
 
