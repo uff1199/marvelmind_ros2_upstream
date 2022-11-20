@@ -6,6 +6,8 @@ Prepare for release
 
 Forthcoming
 -----------
+* Global timestamps support
+* Contributors: smoker77
 
 1.0.2 (2022-07-10)
 ------------------
