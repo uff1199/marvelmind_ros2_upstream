@@ -176,6 +176,16 @@ struct WaypointsData
 	bool updated;
 };
 
+struct UserPayloadData
+{
+    TimestampOpt timestamp;
+
+    uint8_t data[256];
+    uint8_t dataSize;
+
+    bool updated;
+};
+
 struct MarvelmindHedge
 {
 // serial port device name (physical or USB/virtual). It should be provided as
@@ -205,6 +215,8 @@ struct MarvelmindHedge
     struct TelemetryData telemetry;
     struct QualityData quality;
     struct WaypointsData waypoints;
+
+    struct UserPayloadData userPayloadData;
 
 // verbose flag which activate console output
 //		default: False
@@ -247,6 +259,7 @@ struct MarvelmindHedge
 #define NT_BEACON_RAW_DISTANCE_DATAGRAM_ID 0x0084
 #define NT_IMU_FUSION_DATAGRAM_ID 0x0085
 #define WAYPOINT_DATAGRAM_ID 0x0201
+#define GENERIC_USER_DATA_DATAGRAM_ID 0x0280
 
 struct MarvelmindHedge * createMarvelmindHedge ();
 void destroyMarvelmindHedge (struct MarvelmindHedge * hedge);

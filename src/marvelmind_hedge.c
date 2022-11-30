@@ -695,6 +695,24 @@ static void process_waypoint_data(struct MarvelmindHedge * hedge, uint8_t *buffe
    hedge->waypoints.updated= true;
 }
 
+static void process_generic_user_data(struct MarvelmindHedge* hedge, uint8_t* buffer) {
+    uint8_t size = buffer[4];
+    uint8_t dsize;
+    uint8_t i;
+
+    if (size <= 8) return;
+    dsize = size - 8;
+
+    memcpy(&hedge->userPayloadData.timestamp.timestamp64, &buffer[5], 8);
+
+    hedge->userPayloadData.dataSize = dsize;
+    for (i = 0; i < dsize; i++) {
+        hedge->userPayloadData.data[i] = buffer[5 + 8 + i];
+    }
+
+    hedge->userPayloadData.updated = true;
+}
+
 ////////////////////
 
 enum
@@ -733,6 +751,7 @@ Marvelmind_Thread_ (void* param)
     while (hedge->terminationRequired==false)
     {
         uint8_t receivedChar;
+        uint8_t packetType;
         bool readSuccessed=true;
 #ifdef WIN32
         DWORD nBytesRead;
@@ -762,7 +781,8 @@ Marvelmind_Thread_ (void* param)
                         goodByte= (receivedChar == 0xff);
                         break;
                     case 1:
-                        goodByte= (receivedChar == 0x47)  || (receivedChar == 0x4a);
+                        packetType = receivedChar;
+                        goodByte = (packetType == 0x47) || (packetType == 0x4a);
                         break;
                     case 2:
                         goodByte= true;
@@ -788,7 +808,8 @@ Marvelmind_Thread_ (void* param)
                           }
                         else if (input_buffer[1] == 0x4a) 
                           {
-							  goodByte= (dataId == WAYPOINT_DATAGRAM_ID);
+							  goodByte= (dataId == WAYPOINT_DATAGRAM_ID) ||
+                                        (dataId == GENERIC_USER_DATA_DATAGRAM_ID);
 					      }  
                         break;
                     case 4:
@@ -828,7 +849,9 @@ Marvelmind_Thread_ (void* param)
                             case NT_IMU_FUSION_DATAGRAM_ID:
                                 goodByte = true;
                                 break;
-
+                            case GENERIC_USER_DATA_DATAGRAM_ID:
+                                goodByte = true;
+                                break;
                         }
                         if (goodByte)
                             recvState=RECV_DGRAM;
@@ -912,6 +935,10 @@ Marvelmind_Thread_ (void* param)
                                 process_waypoint_data(hedge, input_buffer);
                                 send_waypoint_confirm(ttyHandle);
                                 break;
+                            case GENERIC_USER_DATA_DATAGRAM_ID:
+                                process_generic_user_data(hedge, input_buffer);
+                                break;
+
                         }
 #ifdef WIN32
                         LeaveCriticalSection(&hedge->lock_);
@@ -969,6 +996,9 @@ struct MarvelmindHedge * createMarvelmindHedge ()
         hedge->rawIMU.updated= false;
         hedge->fusionIMU.updated= false;
         hedge->rawDistances.updated= false;
+
+        hedge->userPayloadData.updated = false;
+
 #ifdef WIN32
         InitializeCriticalSection(&hedge->lock_);
 #else

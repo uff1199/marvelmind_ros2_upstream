@@ -51,6 +51,7 @@ marvelmind_ros2::marvelmind_ros2() : rclcpp::Node("marvelmind_ros2") {
   this->declare_parameter("hedgehog_telemetry_topic", "hedgehog_telemetry");
   this->declare_parameter("hedgehog_quality_topic", "hedgehog_quality");
   this->declare_parameter("marvelmind_waypoint_topic", "marvelmind_waypoint");
+  this->declare_parameter("marvelmind_user_data_topic", "marvelmind_user_data");
 
   // Other Params
   this->declare_parameter("data_input_semaphore_name", "/data_input_semaphore");
@@ -74,6 +75,7 @@ marvelmind_ros2::marvelmind_ros2() : rclcpp::Node("marvelmind_ros2") {
   this->beacon_raw_distance_topic = this->get_parameter("beacon_raw_distance_topic").as_string();
   this->beacon_pos_addressed_topic = this->get_parameter("beacon_pos_addressed_topic").as_string();
   this->marvelmind_waypoint_topic = this->get_parameter("marvelmind_waypoint_topic").as_string();
+  this->marvelmind_user_data_topic = this->get_parameter("marvelmind_user_data_topic").as_string();
 
   this->data_input_semaphore_name = this->get_parameter("data_input_semaphore_name").as_string();
   this->publish_rate_in_hz = this->get_parameter("marvelmind_publish_rate_in_hz").as_int();
@@ -110,6 +112,9 @@ marvelmind_ros2::marvelmind_ros2() : rclcpp::Node("marvelmind_ros2") {
 
   this->marvelmind_waypoint_publisher = this->create_publisher<marvelmind_ros2_msgs::msg::MarvelmindWaypoint>
     (this->marvelmind_waypoint_topic, 20);
+
+  this->marvelmind_user_data_publisher = this->create_publisher<marvelmind_ros2_msgs::msg::MarvelmindUserData>
+      (this->marvelmind_user_data_topic, 20);
 
   // do setup
   #ifndef WIN32
@@ -238,8 +243,8 @@ bool marvelmind_ros2::hedgeReceiveCheck(void)
 		  }	
 	     else 
 	      {
-            this->hedge_pos_msg.timestamp_ms= position.timestamp.timestamp32*15.625;// alpha-cycles ==> msec
-            this->hedge_pos_noaddress_msg.timestamp_ms= position.timestamp.timestamp32*15.625;
+            this->hedge_pos_msg.timestamp_ms= (int64_t) position.timestamp.timestamp32*15.625;// alpha-cycles ==> msec
+            this->hedge_pos_noaddress_msg.timestamp_ms= (int64_t) position.timestamp.timestamp32*15.625;
         } 
         this->hedge_pos_ang_msg.timestamp_ms= t;
           
@@ -437,6 +442,23 @@ bool marvelmind_ros2::marvelmindWaypointUpdateCheck(void)
 	return (nUpdated>0);
 }
 
+bool marvelmind_ros2::marvelmindUserDataUpdateCheck(void)
+{
+    int i;
+
+    if (!this->hedge->userPayloadData.updated)
+        return false;
+
+    this->marvelmind_user_data_msg.timestamp_ms = this->hedge->userPayloadData.timestamp.timestamp64;
+    this->marvelmind_user_data_msg.data.clear();
+    for (i = 0; i < hedge->userPayloadData.dataSize; i++)
+        this->marvelmind_user_data_msg.data.push_back(hedge->userPayloadData.data[i]);
+
+    this->hedge->userPayloadData.updated = false;
+    return true;
+}
+
+
 void marvelmind_ros2::publishTimerCallback() {
   // Timer for firing publishers at defined update rate from config file
   RCLCPP_DEBUG(rclcpp::get_logger("hedgehog_logger"),"Callback!");
@@ -559,7 +581,6 @@ void marvelmind_ros2::publishTimerCallback() {
   }
     
   RCLCPP_DEBUG(rclcpp::get_logger("hedgehog_logger"),"Do marvel waypoint check!");
-
   if (this->marvelmindWaypointUpdateCheck())
   {
     int n= this->marvelmind_waypoint_msg.item_index+1;
@@ -568,6 +589,12 @@ void marvelmind_ros2::publishTimerCallback() {
       (int) this->marvelmind_waypoint_msg.total_items, this->marvelmind_waypoint_msg.movement_type,
       this->marvelmind_waypoint_msg.param1, this->marvelmind_waypoint_msg.param2, this->marvelmind_waypoint_msg.param3);
     this->marvelmind_waypoint_publisher->publish(this->marvelmind_waypoint_msg);
+  }
+
+  if (this->marvelmindUserDataUpdateCheck())
+  {
+      this->marvelmind_user_data_publisher->publish(this->marvelmind_user_data_msg);
+      RCLCPP_DEBUG(rclcpp::get_logger("hedgehog_logger"), "User data: Timestamp: %08d", (int)this->marvelmind_user_data_msg.timestamp_ms);
   }
 
 } // end timer callback

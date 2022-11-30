@@ -67,6 +67,8 @@ extern "C"
 
 #include "marvelmind_ros2_msgs/msg/marvelmind_waypoint.hpp"
 
+#include "marvelmind_ros2_msgs/msg/marvelmind_user_data.hpp"
+
 
 // global vars
 // global semaphore to avoid class scope issues 
@@ -96,6 +98,7 @@ class marvelmind_ros2 : public rclcpp::Node
         rclcpp::Publisher<marvelmind_ros2_msgs::msg::HedgeTelemetry>::SharedPtr hedge_telemetry_publisher;
         rclcpp::Publisher<marvelmind_ros2_msgs::msg::HedgeQuality>::SharedPtr hedge_quality_publisher;
         rclcpp::Publisher<marvelmind_ros2_msgs::msg::MarvelmindWaypoint>::SharedPtr marvelmind_waypoint_publisher;
+        rclcpp::Publisher<marvelmind_ros2_msgs::msg::MarvelmindUserData>::SharedPtr marvelmind_user_data_publisher;
 
         // Timer to execute publications so we can easily control rate
         rclcpp::TimerBase::SharedPtr marvelmind_ros2_pub_timer;
@@ -110,6 +113,7 @@ class marvelmind_ros2 : public rclcpp::Node
         bool hedgeTelemetryUpdateCheck(void);
         bool hedgeQualityUpdateCheck(void);  
         bool marvelmindWaypointUpdateCheck(void);
+        bool marvelmindUserDataUpdateCheck(void);
         void publishTimerCallback();
 
 
@@ -125,6 +129,7 @@ class marvelmind_ros2 : public rclcpp::Node
         std::string beacon_raw_distance_topic;
         std::string beacon_pos_addressed_topic;
         std::string marvelmind_waypoint_topic;
+        std::string marvelmind_user_data_topic;
 
         // Config variables
         std::string data_input_semaphore_name;
@@ -139,7 +144,7 @@ class marvelmind_ros2 : public rclcpp::Node
 
         // Marvelmind data
         struct MarvelmindHedge * hedge = NULL;
-        uint32_t hedge_timestamp_prev = 0;
+        int64_t hedge_timestamp_prev = 0;
         struct timespec ts;
         uint8_t beaconReadIterations;
 
@@ -154,6 +159,7 @@ class marvelmind_ros2 : public rclcpp::Node
         marvelmind_ros2_msgs::msg::HedgeTelemetry hedge_telemetry_msg;// Telemetry message for publishing to ROS topic
         marvelmind_ros2_msgs::msg::HedgeQuality hedge_quality_msg;// Quality message for publishing to ROS topic
         marvelmind_ros2_msgs::msg::MarvelmindWaypoint marvelmind_waypoint_msg;// Waypoint message for publishing to ROS topic
+        marvelmind_ros2_msgs::msg::MarvelmindUserData marvelmind_user_data_msg;// Waypoint message for publishing to ROS topic
 
 };
 

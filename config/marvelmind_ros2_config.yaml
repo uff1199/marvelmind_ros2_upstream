@@ -14,3 +14,9 @@ marvelmind_ros2:
     marvelmind_publish_rate_in_hz: 200
     marvelmind_tty_baudrate: 9600 # likely does not every need to change
     marvelmind_tty_filename: "/dev/ttyACM0"
+
+marvelmind_api_ros2:
+  ros__parameters:
+    marvelmind_publish_rate_in_hz: 200
+    marvelmind_tty_baudrate: 9600 # likely does not every need to change
+    marvelmind_tty_filename: "/dev/ttyACM0"

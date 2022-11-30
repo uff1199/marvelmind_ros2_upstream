@@ -28,9 +28,9 @@ def generate_launch_description():
     )
 
     # define node to launch and parameters to use
-    marvelmind_ros2_node = Node(
+    marvelmind_api_ros2_node = Node(
         package='marvelmind_ros2',
-        executable='marvelmind_ros2',
+        executable='marvelmind_api_ros2',
         output='screen',
         arguments=['--ros-args', '--log-level', 'rclcpp:=WARN', '--log-level', 'hedgehog_logger:=INFO'],
         parameters=[LaunchConfiguration('marvelmind_ros2_config_file')],
@@ -38,7 +38,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         marvelmind_ros2_config,
-        marvelmind_ros2_node,
+        marvelmind_api_ros2_node,
     ])
 
 
