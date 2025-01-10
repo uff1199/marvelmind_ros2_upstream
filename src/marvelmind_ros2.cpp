@@ -116,6 +116,13 @@ marvelmind_ros2::marvelmind_ros2() : rclcpp::Node("marvelmind_ros2") {
   this->marvelmind_user_data_publisher = this->create_publisher<marvelmind_ros2_msgs::msg::MarvelmindUserData>
       (this->marvelmind_user_data_topic, 20);
 
+  // Publish PoseMessage
+  this->marvelmind_ros_msg_publisher = this->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>
+     ("/hedgehog_ros_pose_cov",20);
+
+  // Publish Transform
+  this->marvelmind_ros_tf_broadcaster = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+
   // do setup
   #ifndef WIN32
   sem = sem_open(this->data_input_semaphore_name.c_str(), O_CREAT, 0777, 0);
@@ -503,6 +510,46 @@ void marvelmind_ros2::publishTimerCallback() {
     this->hedge_pos_noaddress_publisher->publish(this->hedge_pos_noaddress_msg);
 
     this->hedge_timestamp_prev= this->hedge_pos_ang_msg.timestamp_ms;
+
+    // Publish PosewithCovarianceStamped
+    this->marvelmind_pos_cov_stamped_msg.pose.pose.position.x = this->hedge_pos_ang_msg.x_m;
+    this->marvelmind_pos_cov_stamped_msg.pose.pose.position.y = this->hedge_pos_ang_msg.y_m;
+    this->marvelmind_pos_cov_stamped_msg.pose.pose.position.z = this->hedge_pos_ang_msg.z_m;
+
+    this->marvelmind_pos_cov_stamped_msg.pose.pose.orientation.z = this->hedge_pos_ang_msg.angle;
+
+    this->marvelmind_pos_cov_stamped_msg.header.stamp.sec = hedge_pos_ang_msg.timestamp_ms / 1000; // Seconds part
+    this->marvelmind_pos_cov_stamped_msg.header.stamp.nanosec = (hedge_pos_ang_msg.timestamp_ms % 1000) * 1000000; // Nanoseconds part
+
+    this->marvelmind_pos_cov_stamped_msg.header.frame_id = "hedgehog";
+
+    // TODO: Check frame association
+    this->marvelmind_pos_cov_stamped_msg.header.stamp.sec = hedge_pos_ang_msg.timestamp_ms / 1000; // Seconds part
+    this->marvelmind_pos_cov_stamped_msg.header.stamp.nanosec = (hedge_pos_ang_msg.timestamp_ms % 1000) * 1000000; // Nanoseconds part
+
+    this->marvelmind_tf_msg.header.frame_id = "hedgehog_map";
+    this->marvelmind_tf_msg.child_frame_id = "hedgehog";
+    this->marvelmind_tf_msg.transform.translation.x= this->hedge_pos_ang_msg.x_m;
+    this->marvelmind_tf_msg.transform.translation.y= this->hedge_pos_ang_msg.y_m;
+    this->marvelmind_tf_msg.transform.translation.z= this->hedge_pos_ang_msg.z_m;
+
+    tf2::Quaternion quaternion;
+    quaternion.setRPY(this->hedge_pos_ang_msg.angle, 0, 0);  // Roll, Pitch, Yaw
+    this->marvelmind_tf_msg.transform.rotation.x = quaternion.x();
+    this->marvelmind_tf_msg.transform.rotation.y = quaternion.y();
+    this->marvelmind_tf_msg.transform.rotation.z = quaternion.z();
+    this->marvelmind_tf_msg.transform.rotation.w = quaternion.w();
+
+
+
+
+    this->marvelmind_ros_msg_publisher->publish(this->marvelmind_pos_cov_stamped_msg);
+
+    this->marvelmind_ros_tf_broadcaster->sendTransform(marvelmind_tf_msg);
+
+
+
+
   }
     
   RCLCPP_DEBUG(rclcpp::get_logger("hedgehog_logger"),"Do Beacon recieve check!");

@@ -70,6 +70,11 @@ extern "C"
 #include "marvelmind_ros2_msgs/msg/marvelmind_user_data.hpp"
 
 
+#include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#include "tf2_ros/transform_broadcaster.h"
+
+
 // global vars
 // global semaphore to avoid class scope issues 
 #ifndef WIN32
@@ -99,6 +104,10 @@ class marvelmind_ros2 : public rclcpp::Node
         rclcpp::Publisher<marvelmind_ros2_msgs::msg::HedgeQuality>::SharedPtr hedge_quality_publisher;
         rclcpp::Publisher<marvelmind_ros2_msgs::msg::MarvelmindWaypoint>::SharedPtr marvelmind_waypoint_publisher;
         rclcpp::Publisher<marvelmind_ros2_msgs::msg::MarvelmindUserData>::SharedPtr marvelmind_user_data_publisher;
+        // PosewithCovarianceStamped
+        rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr marvelmind_ros_msg_publisher;
+        // TFBroadcaster
+        std::unique_ptr<tf2_ros::TransformBroadcaster> marvelmind_ros_tf_broadcaster;
 
         // Timer to execute publications so we can easily control rate
         rclcpp::TimerBase::SharedPtr marvelmind_ros2_pub_timer;
@@ -160,6 +169,8 @@ class marvelmind_ros2 : public rclcpp::Node
         marvelmind_ros2_msgs::msg::HedgeQuality hedge_quality_msg;// Quality message for publishing to ROS topic
         marvelmind_ros2_msgs::msg::MarvelmindWaypoint marvelmind_waypoint_msg;// Waypoint message for publishing to ROS topic
         marvelmind_ros2_msgs::msg::MarvelmindUserData marvelmind_user_data_msg;// Waypoint message for publishing to ROS topic
+        geometry_msgs::msg::PoseWithCovarianceStamped marvelmind_pos_cov_stamped_msg; // PosewithCovarianceStamped
+        geometry_msgs::msg::TransformStamped marvelmind_tf_msg; // TFMessage
 
 };
 

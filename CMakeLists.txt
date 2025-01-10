@@ -23,6 +23,12 @@ find_package(geometry_msgs REQUIRED)
 find_package(marvelmind_ros2_msgs REQUIRED)
 find_package(rosidl_default_generators 	REQUIRED)
 
+
+# TF
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+
 include_directories(include)
 
 add_library(marvelmind_hedge_lib
@@ -36,7 +42,7 @@ add_library(marvelmind_api_lib
 
 # Find src files to compile
 add_executable(marvelmind_ros2 src/marvelmind_ros2.cpp)
-ament_target_dependencies(marvelmind_ros2 rclcpp std_msgs geometry_msgs marvelmind_ros2_msgs)
+ament_target_dependencies(marvelmind_ros2 rclcpp std_msgs geometry_msgs tf2 tf2_ros tf2_geometry_msgs marvelmind_ros2_msgs)
 
 add_executable(marvelmind_api_ros2 src/marvelmind_api_ros2.cpp)
 ament_target_dependencies(marvelmind_api_ros2 rclcpp std_msgs geometry_msgs marvelmind_ros2_msgs)
